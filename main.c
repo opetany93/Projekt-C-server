@@ -4,11 +4,9 @@
 #include <sys/socket.h>
 #include "dlib.h"
 
-#define BUFLEN 64  	//Max length of buffer
-#define PORT 666    	//The port on which to listen for incoming data
-
+#define BUFLEN 64  			//Max length of buffer
+#define PORT 666    		//The port on which to listen for incoming data
 float (*operation)(float, float);
-
 struct params
 {
 	char *a;
