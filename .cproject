@@ -30,11 +30,12 @@
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1328507718" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1575692382" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release">
-								<option id="gnu.c.link.option.paths.977950027" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
+								<option id="gnu.c.link.option.paths.977950027" name="Library search path (-L)" superClass="gnu.c.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}}&quot;"/>
 								</option>
-								<option id="gnu.c.link.option.libs.1026961281" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
+								<option id="gnu.c.link.option.libs.1026961281" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="dlib"/>
+									<listOptionValue builtIn="false" value="dl"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1136628279" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

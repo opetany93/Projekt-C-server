@@ -2,18 +2,16 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include "dlib.h"
+#include <dlfcn.h>
 
 #define BUFLEN 64  			//Max length of buffer
 #define PORT 666    		//The port on which to listen for incoming data
-
-float (*operation)(float, float);
 
 struct params
 {
 	float a;
 	float b;
-	char  *operation;
+	float (*fun)(float, float);
 }params;
 
 void die(char *s)
@@ -25,13 +23,29 @@ void die(char *s)
 int main(int argc, char *argv[])
 {
 	int i;
-	uint8_t space;
-	uint8_t buf_temp[BUFLEN];
+	uint8_t space = 0;
+	char buf_temp[BUFLEN];
+
+	// variables for dynamic library
+	void* lib_handle;
+	char* error_msg;
+
+	// variables for socket
 	struct sockaddr_in si_server, si_client;
+    int s, slen = sizeof(si_client), recv_len;
 
-    int s, err = 0, slen = sizeof(si_client), recv_len;
-
+    // buffer for incoming data
     char buf[BUFLEN];
+
+    float (*operation)(float, float);
+
+    lib_handle = dlopen("/home/opetany/workspace/Projekt-C-Server/libdlib.so", RTLD_LAZY);
+
+    if (!lib_handle)
+    {
+    	fprintf(stderr, "Error during dlopen(): %s\n", dlerror());
+    	exit(1);
+    }
 
     //create a UDP socket
     if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
@@ -65,8 +79,8 @@ int main(int argc, char *argv[])
         }
 
         //print details of the client/peer and the data received
-		printf("Received packet from %s:%d\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
-		printf("Data: %s\n" , buf);
+		printf("\nReceived packet from %s:%d\n", inet_ntoa(si_client.sin_addr), ntohs(si_client.sin_port));
+		printf("Data received: %s\n" , buf);
 
 		for(i=0; i < BUFLEN; i++)
 		{
@@ -87,7 +101,7 @@ int main(int argc, char *argv[])
 		{
 			if(buf[space + i] == ' ')
 			{
-				space = i + 1;
+				space = space + i + 1;
 				break;
 			}
 
@@ -108,43 +122,34 @@ int main(int argc, char *argv[])
 			buf_temp[i] = buf[space + i];
 		}
 
-		operation = buf_temp;
+		operation = dlsym(lib_handle, buf_temp);
 
-		printf("Pierwszy wspolczynnik: %f\n" , params.a);
-		printf("Drugi wspolczynnik: %f\n" , params.b);
-		printf("Operacja: %s\n" , operation);
+		error_msg = dlerror();
+		if (error_msg)
+		{
+		    sprintf(buf, "Wrong parameter of operation! Please try again.\n");
+
+		    //now reply the client with the result
+			if (sendto(s, buf, sizeof(buf), 0, (struct sockaddr*) &si_client, slen) == -1)
+			{
+				die("sendto()");
+			}
+
+		    exit(1);
+		}
 
 		memset((char *) &buf, 0, sizeof(buf));
 
-//        if (!strcmp((params.operation),"add"))
-//        {
-//        	operation = add;
-//        }
-//        else if(!strcmp((params.operation),"subtract"))
-//        {
-//        	operation = subtract;
-//        }
-//        else if(!strcmp((params.operation),"multiply"))
-//        {
-//        	operation = multiply;
-//        }
-//        else if(!strcmp((params.operation),"divide"))
-//        {
-//        	operation = divide;
-//        }
-//        else
-//        {
-//        	err = -1;
-//        }
-//
-//        //if(err == 0) sprintf(buf, "Result: %f", (*operation)(params.a, params.b));
-//        //else if(err == -1) sprintf(buf, "Wrong parameters! Please try again.");
-//
-//        //now reply the client with the result
-//        if (sendto(s, buf, recv_len, 0, (struct sockaddr*) &si_client, slen) == -1)
-//        {
-//            die("sendto()");
-//        }
+		sprintf(buf, "Result: %.3f.\n", operation(params.a, params.b));
+		printf("Sent packet: %s", buf);
+
+        //now reply the client with the result
+        if (sendto(s, buf, sizeof(buf), 0, (struct sockaddr*) &si_client, slen) == -1)
+        {
+            die("sendto()");
+        }
+
+        memset((char *) &buf, 0, sizeof(buf));
     }
 
     close(s);
