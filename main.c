@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 
     float (*operation)(float, float);
 
-    lib_handle = dlopen("/home/opetany/workspace/Projekt-C-Server/libdlib.so", RTLD_LAZY);
+    lib_handle = dlopen("/root/C_Projects/Projekt-C-server/libdlib.so", RTLD_LAZY);
 
     if (!lib_handle)
     {
